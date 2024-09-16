@@ -243,6 +243,7 @@ void initializeProcessImplicitDefsPass(PassRegistry&);
 void initializeProfileSummaryInfoWrapperPassPass(PassRegistry&);
 void initializePromoteLegacyPassPass(PassRegistry&);
 void initializeRABasicPass(PassRegistry&);
+void initializeRABitEAPass(PassRegistry&);
 void initializePseudoProbeInserterPass(PassRegistry &);
 void initializeRAGreedyPass(PassRegistry&);
 void initializeReachingDefAnalysisPass(PassRegistry&);
