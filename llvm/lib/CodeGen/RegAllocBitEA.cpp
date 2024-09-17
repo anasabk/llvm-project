@@ -33,7 +33,8 @@
 #include "llvm/Support/raw_ostream.h"
 #include <queue>
 
-#include "mt-BitEA/mtBitEA.h"
+#include "mtBitEA/mtBitEA.h"
+#include "mtBitEA/stdgraph.h"
 
 using namespace llvm;
 

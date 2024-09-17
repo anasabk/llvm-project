@@ -254,9 +254,6 @@ add_llvm_component_library(LLVMCodeGen
   LiveDebugValues/VarLocBasedImpl.cpp
   LiveDebugValues/InstrRefBasedImpl.cpp
 
-  mt-BitEA/mtBitEA.c
-  # mt-BitEA/stdgraph.c
-
   ADDITIONAL_HEADER_DIRS
   ${LLVM_MAIN_INCLUDE_DIR}/llvm/CodeGen
   ${LLVM_MAIN_INCLUDE_DIR}/llvm/CodeGen/PBQP
@@ -287,3 +284,4 @@ add_subdirectory(SelectionDAG)
 add_subdirectory(AsmPrinter)
 add_subdirectory(MIRParser)
 add_subdirectory(GlobalISel)
+add_subdirectory(mtBitEA)
