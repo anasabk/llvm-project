@@ -248,7 +248,7 @@ void RABitEA::buildInterGraph(){
       continue;
     LiveInterval *VirtReg = &LIS->getInterval(Reg);
 
-    for(int j = i; j <= inter_graph.size; ++j) {
+    for(int j = i; j < inter_graph.size; ++j) {
       unsigned Reg = Register::index2VirtReg(j);
       if(MRI->reg_nodbg_empty(Reg))
         continue;
