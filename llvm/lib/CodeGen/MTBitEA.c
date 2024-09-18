@@ -16,7 +16,7 @@
 #include <math.h>
 #include <inttypes.h>
 
-#include "mtBitEA.h"
+#include "MTBitEA.h"
 
 
 void graph_color_MBGA(

@@ -1,6 +1,9 @@
 #ifndef MBGA_H
 #define MBGA_H
 
+#ifdef __cplusplus
+extern "C"{
+#endif 
 
 #include <inttypes.h>
 #include <stdlib.h>
@@ -161,5 +164,9 @@ bool validate_colors(
 
 void* generator_thread(void *param);
 
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

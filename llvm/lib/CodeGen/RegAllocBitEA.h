@@ -21,7 +21,9 @@
 #include "llvm/Support/raw_ostream.h"
 #include <queue>
 
-#include "mtBitEA/mtBitEA.h"
+// extern "C" {
+#include "MTBitEA.h"
+// }
 
 using namespace llvm;
 

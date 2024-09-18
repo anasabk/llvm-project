@@ -180,6 +180,8 @@ add_llvm_component_library(LLVMCodeGen
   ReachingDefAnalysis.cpp
   RegAllocBase.cpp
   RegAllocBasic.cpp
+  MTBitEA.c
+  stdgraph.c
   RegAllocBitEA.cpp
   RegAllocEvictionAdvisor.cpp
   RegAllocFast.cpp
@@ -284,4 +286,3 @@ add_subdirectory(SelectionDAG)
 add_subdirectory(AsmPrinter)
 add_subdirectory(MIRParser)
 add_subdirectory(GlobalISel)
-add_subdirectory(mtBitEA)

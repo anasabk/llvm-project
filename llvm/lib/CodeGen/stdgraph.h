@@ -1,6 +1,10 @@
 #ifndef STDGRAPH_H
 #define STDGRAPH_H
 
+#ifdef __cplusplus
+extern "C"{
+#endif 
+
 
 #include <stdlib.h>
 #include <stdbool.h>
@@ -87,5 +91,9 @@ void count_conflicts(
     int conflict_count[]
 );
 
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
