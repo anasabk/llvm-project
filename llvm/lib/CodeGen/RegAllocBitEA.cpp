@@ -235,26 +235,31 @@ MCRegister RABitEA::selectOrSplit(const LiveInterval &VirtReg,
 //Main function for building the Interference Graph
 void RABitEA::buildInterGraph(){
   inter_graph.size = MRI->getNumVirtRegs();
-  inter_graph.weights = TRI->getRegisterCosts(*MF).data();
+
+  float *weights = (float*)calloc(inter_graph.size, sizeof(float));
+  inter_graph.weights = weights;
+
   inter_graph.edge_mat = 
     (block_t*)calloc(inter_graph.size, TOTAL_BLOCK_NUM(inter_graph.size)*sizeof(block_t));
 
   block_t (*edge_mat)[][TOTAL_BLOCK_NUM(inter_graph.size)] = 
       (block_t (*)[][TOTAL_BLOCK_NUM(inter_graph.size)])inter_graph.edge_mat;
 
+  unsigned Reg;
 	for(int i = 0; i < inter_graph.size; ++i) {
-  	unsigned Reg = Register::index2VirtReg(i);
+  	Reg = Register::index2VirtReg(i);
   	if(MRI->reg_nodbg_empty(Reg))
       continue;
     LiveInterval *VirtReg = &LIS->getInterval(Reg);
+    weights[i] = VirtReg->weight();
 
-    for(int j = i; j < inter_graph.size; ++j) {
-      unsigned Reg = Register::index2VirtReg(j);
+    for(int j = i+1; j < inter_graph.size; ++j) {
+      Reg = Register::index2VirtReg(j);
       if(MRI->reg_nodbg_empty(Reg))
         continue;
       LiveInterval *VirtReg2 = &LIS->getInterval(Reg);
 
-      if (VirtReg->overlaps(VirtReg2)) {
+      if (VirtReg->overlaps(*VirtReg2)) {
         SET_BIT((*edge_mat)[i], j);
         SET_BIT((*edge_mat)[j], i);
       }
@@ -293,5 +298,7 @@ bool RABitEA::runOnMachineFunction(MachineFunction &mf) {
   LLVM_DEBUG(dbgs() << "Post alloc VirtRegMap:\n" << *VRM << "\n");
 
   releaseMemory();
+  free((void*)inter_graph.weights);
+  free((void*)inter_graph.edge_mat);
   return true;
 }
