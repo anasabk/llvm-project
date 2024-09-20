@@ -15,13 +15,13 @@ extern "C"{
 typedef struct {
     block_t *color_mat;
     int color_num;
-    int fitness;
+    float fitness;
     int uncolored;
 } mbga_individual_t;
 
 typedef struct {
     const block_t *edge_mat;
-    const uint8_t *weights;
+    const float *weights;
     int size;
 } mbga_graph_t;
 

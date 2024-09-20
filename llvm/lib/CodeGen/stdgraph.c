@@ -76,7 +76,7 @@ bool write_graph (
         return false;
 
     for(int i = 0; i < graph_size; i++)
-        for(int j = 0; j < graph_size; j++)
+        for(int j = i+1; j < graph_size; j++)
             if (CHECK_BIT((*edge_mat)[i], j))
                 fprintf(fp, "%d %d\n", i, j);
     
@@ -85,19 +85,19 @@ bool write_graph (
 }
 
 
-bool read_weights(const char* filename, int graph_size, uint8_t weights[]) {
+bool read_weights(const char* filename, int graph_size, float weights[]) {
     FILE *fp = fopen(filename, "r");
     
     if(fp == NULL)
         return false;
 
-    memset(weights, 0, graph_size * sizeof(uint8_t));
+    memset(weights, 0, graph_size * sizeof(float));
 
     char buffer[64];
     int vertex = 0;
     while(fgets(buffer, 64, fp) != NULL && vertex < graph_size) {
         buffer[strcspn(buffer, "\n")] = 0;
-        weights[vertex] = atoi(buffer);
+        weights[vertex] = atof(buffer);
         vertex++;
     }
     
@@ -106,13 +106,13 @@ bool read_weights(const char* filename, int graph_size, uint8_t weights[]) {
 }
 
 
-bool write_weights(const char* filename, int graph_size, const uint8_t weights[]) {
+bool write_weights(const char* filename, int graph_size, const float weights[]) {
     FILE *fp = fopen(filename, "w");
     if(fp == NULL)
         return false;
 
     for (int i = 0; i < graph_size; i++)
-        fprintf(fp, "%d\n", weights[i]);
+        fprintf(fp, "%f\n", weights[i]);
     
     fclose(fp);
     return true;

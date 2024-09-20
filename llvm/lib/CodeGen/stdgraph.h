@@ -37,9 +37,9 @@ bool write_graph(
     int offset_i
 );
 
-bool read_weights(const char* filename, int size, uint8_t weights[]);
+bool read_weights(const char* filename, int size, float weights[]);
 
-bool write_weights(const char* filename, int size, const uint8_t weights[]);
+bool write_weights(const char* filename, int size, const float weights[]);
 
 bool is_valid(
     int graph_size, 

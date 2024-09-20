@@ -32,7 +32,7 @@ void graph_color_MBGA(
         population[i].color_mat = calloc(base_color_count * TOTAL_BLOCK_NUM((size_t)graph->size), sizeof(block_t));
         population[i].uncolored = base_color_count;
         population[i].color_num = base_color_count;
-        population[i].fitness = __INT_MAX__;
+        population[i].fitness = __FLT_MAX__;
 
         graph_color_random(graph->size, population[i].color_mat, base_color_count);
     }
@@ -221,7 +221,8 @@ int revisit(
     block_t i_mask;
     block_t conflict_array[TOTAL_BLOCK_NUM(graph->size)];
     int add_to_pool = 0;
-    int conflict_id, conflict_block, competition, conflict_count;
+    int conflict_id, conflict_block, conflict_count;
+    float competition;
     bool place_flag;
 
     // Search back and try placing vertices from the pool in the colors.
@@ -267,7 +268,7 @@ int revisit(
                     }
 
                 } else if (!simple_flag && conflict_count > 0) {
-                    competition = 0;
+                    competition = 0.0f;
                     for(k = 0; k < graph->size; k++)
                         if(CHECK_BIT(conflict_array, k))
                             competition += graph->weights[k];
@@ -372,7 +373,7 @@ void generate_child (
     block_t temp_mask;
 
     child->uncolored = 0;
-    child->fitness = 0;
+    child->fitness = 0.0f;
     
     for(int i = 0; i < graph->size; i++) {
         temp_block = BLOCK_INDEX(i);
@@ -500,7 +501,7 @@ bool validate_colors(
     memset(pool, 0, TOTAL_BLOCK_NUM(graph->size)*sizeof(block_t));
 
     int confict_count[graph->size];
-    int calc_fitness = 0;
+    float calc_fitness = 0.0f;
 
     for (int i = 0; i < indiv->color_num; i++) {
         count_conflicts(
@@ -525,7 +526,7 @@ bool validate_colors(
     }
 
     if(calc_fitness != indiv->fitness) {
-        printf("Fitness does not match, given %d vs actual %d.\n", indiv->fitness, calc_fitness);
+        printf("Fitness does not match, given %f vs actual %f.\n", indiv->fitness, calc_fitness);
     }
 
     int vertex_counts[graph->size];
