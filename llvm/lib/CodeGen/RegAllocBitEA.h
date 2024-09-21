@@ -60,6 +60,7 @@ class RABitEA : public MachineFunctionPass,
   BitVector UsableRegs;
 
   mbga_graph_t inter_graph;
+  std::unordered_map<MCRegister, int> physRegDict;
 
   bool LRE_CanEraseVirtReg(Register) override;
   void LRE_WillShrinkVirtReg(Register) override;

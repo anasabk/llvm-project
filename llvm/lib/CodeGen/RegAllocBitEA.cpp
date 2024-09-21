@@ -234,7 +234,7 @@ MCRegister RABitEA::selectOrSplit(const LiveInterval &VirtReg,
 
 //Main function for building the Interference Graph
 void RABitEA::buildInterGraph(){
-  inter_graph.size = MRI->getNumVirtRegs();
+  inter_graph.size = MRI->getNumVirtRegs() + TRI->getNumRegs();
 
   float *weights = (float*)calloc(inter_graph.size, sizeof(float));
   inter_graph.weights = weights;
@@ -245,15 +245,18 @@ void RABitEA::buildInterGraph(){
   block_t (*edge_mat)[][TOTAL_BLOCK_NUM(inter_graph.size)] = 
       (block_t (*)[][TOTAL_BLOCK_NUM(inter_graph.size)])inter_graph.edge_mat;
 
+  this->physRegDict.clear();
+
   unsigned Reg;
-	for(int i = 0; i < inter_graph.size; ++i) {
+  int lastRegId = MRI->getNumVirtRegs();
+	for(int i = 0, virt_size = MRI->getNumVirtRegs(); i < virt_size; ++i) {
   	Reg = Register::index2VirtReg(i);
   	if(MRI->reg_nodbg_empty(Reg))
       continue;
     LiveInterval *VirtReg = &LIS->getInterval(Reg);
     weights[i] = VirtReg->weight();
 
-    for(int j = i+1; j < inter_graph.size; ++j) {
+    for(int j = i+1; j < virt_size; ++j) {
       Reg = Register::index2VirtReg(j);
       if(MRI->reg_nodbg_empty(Reg))
         continue;
@@ -262,6 +265,31 @@ void RABitEA::buildInterGraph(){
       if (VirtReg->overlaps(*VirtReg2)) {
         SET_BIT((*edge_mat)[i], j);
         SET_BIT((*edge_mat)[j], i);
+      }
+    }
+
+    // Invalidate all interference queries, live ranges could have changed.
+    Matrix->invalidateVirtRegs();
+
+    // Check for an available register in this class.
+    auto Order =
+        AllocationOrder::create(VirtReg.reg(), *VRM, RegClassInfo, Matrix);
+    for (MCRegister PhysReg : Order) {
+      assert(PhysReg.isValid());
+      // Check for interference in PhysReg
+      switch (Matrix->checkInterference(VirtReg, PhysReg)) {
+        // RegMask or RegUnit interference.
+        case LiveRegMatrix::IK_RegUnit:
+        case LiveRegMatrix::IK_RegMask:
+          if (this->physRegDict.find(PhysReg) == this->physRegDict.end())
+            this->physRegDict[PhysReg] = lastRegId++; // Assign then increment
+          SET_BIT((*edge_mat)[i], this->physRegDict[PhysReg]);
+          SET_BIT((*edge_mat)[this->physRegDict[PhysReg]], i);
+          continue;
+
+        // No interference.
+        default:
+          continue;
       }
     }
   }
@@ -283,13 +311,6 @@ bool RABitEA::runOnMachineFunction(MachineFunction &mf) {
   SpillerInstance.reset(createInlineSpiller(*this, *MF, *VRM, VRAI));
 
   buildInterGraph();
-
-  char buffer[128];
-  sprintf(buffer, "%s.edgelist", mf.getName().data());
-  write_graph(buffer, inter_graph.size, inter_graph.edge_mat, 0);
-
-  sprintf(buffer, "%s.col.w", mf.getName().data());
-  write_weights(buffer, inter_graph.size, inter_graph.weights);
 
   allocatePhysRegs();
   postOptimization();
