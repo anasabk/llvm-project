@@ -99,7 +99,7 @@ void RABitEA::LRE_WillShrinkVirtReg(Register VirtReg) {
 }
 
 RABitEA::RABitEA(RegAllocFilterFunc F)
-    : MachineFunctionPass(ID), RegAllocBase(F) {}
+    : MachineFunctionPass(ID), RegAllocBase(F), physRegDict(16, MyHash(), MyEqual()) {}
 
 void RABitEA::getAnalysisUsage(AnalysisUsage &AU) const {
   AU.setPreservesCFG();
@@ -273,11 +273,11 @@ void RABitEA::buildInterGraph(){
 
     // Check for an available register in this class.
     auto Order =
-        AllocationOrder::create(VirtReg.reg(), *VRM, RegClassInfo, Matrix);
+        AllocationOrder::create(VirtReg->reg(), *VRM, RegClassInfo, Matrix);
     for (MCRegister PhysReg : Order) {
       assert(PhysReg.isValid());
       // Check for interference in PhysReg
-      switch (Matrix->checkInterference(VirtReg, PhysReg)) {
+      switch (Matrix->checkInterference(*VirtReg, PhysReg)) {
         // RegMask or RegUnit interference.
         case LiveRegMatrix::IK_RegUnit:
         case LiveRegMatrix::IK_RegMask:

@@ -37,6 +37,14 @@ namespace llvm {
     }
   };
 
+  struct MyHash {
+    std::size_t operator()(const MCRegister& k) const { return k.id(); }
+  };
+
+  struct MyEqual {
+    bool operator()(const MCRegister& lhs, const MCRegister& rhs) const { return lhs.id() == rhs.id(); }
+  };
+
 
 /// RABitEA provides a minimal implementation of the basic register allocation
 /// algorithm. It prioritizes live virtual registers by spill weight and spills
@@ -60,7 +68,12 @@ class RABitEA : public MachineFunctionPass,
   BitVector UsableRegs;
 
   mbga_graph_t inter_graph;
-  std::unordered_map<MCRegister, int> physRegDict;
+  std::unordered_map<
+    MCRegister, 
+    int,
+    MyHash,
+    MyEqual
+  > physRegDict;
 
   bool LRE_CanEraseVirtReg(Register) override;
   void LRE_WillShrinkVirtReg(Register) override;
