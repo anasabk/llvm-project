@@ -234,29 +234,52 @@ MCRegister RABitEA::selectOrSplit(const LiveInterval &VirtReg,
 
 //Main function for building the Interference Graph
 void RABitEA::buildInterGraph(){
-  inter_graph.size = MRI->getNumVirtRegs() + TRI->getNumRegs();
+  this->physRegDict.clear();
+
+  unsigned Reg;
+  int numPhysReg = 0, numVirtReg = MRI->getNumVirtRegs();
+	for(int i = 0; i < numVirtReg; ++i) {
+  	Reg = Register::index2VirtReg(i);
+  	if(MRI->reg_nodbg_empty(Reg))
+      continue;
+    LiveInterval *VirtReg = &LIS->getInterval(Reg);
+
+    // Invalidate all interference queries, live ranges could have changed.
+    Matrix->invalidateVirtRegs();
+
+    // Check for an available register in this class.
+    auto Order =
+        AllocationOrder::create(VirtReg->reg(), *VRM, RegClassInfo, Matrix);
+    for (MCRegister PhysReg : Order) {
+      assert(PhysReg.isValid());
+      if (this->physRegDict.find(PhysReg) == this->physRegDict.end()) {
+        this->physRegDict[PhysReg] = numVirtReg + numPhysReg; // Assign then increment
+        numPhysReg++;
+      }
+    }
+  }
+
+
+  inter_graph.size = numVirtReg + numPhysReg;
 
   float *weights = (float*)calloc(inter_graph.size, sizeof(float));
   inter_graph.weights = weights;
 
-  inter_graph.edge_mat = 
-    (block_t*)calloc(inter_graph.size, TOTAL_BLOCK_NUM(inter_graph.size)*sizeof(block_t));
-
   block_t (*edge_mat)[][TOTAL_BLOCK_NUM(inter_graph.size)] = 
-      (block_t (*)[][TOTAL_BLOCK_NUM(inter_graph.size)])inter_graph.edge_mat;
+      (block_t (*)[][TOTAL_BLOCK_NUM(inter_graph.size)])
+        calloc(inter_graph.size, TOTAL_BLOCK_NUM(inter_graph.size)*sizeof(block_t));
 
-  this->physRegDict.clear();
+  inter_graph.edge_mat = (block_t*)edge_mat;
 
-  unsigned Reg;
-  int lastRegId = MRI->getNumVirtRegs();
-	for(int i = 0, virt_size = MRI->getNumVirtRegs(); i < virt_size; ++i) {
+
+	for(int i = 0; i < numVirtReg; ++i) {
   	Reg = Register::index2VirtReg(i);
   	if(MRI->reg_nodbg_empty(Reg))
       continue;
     LiveInterval *VirtReg = &LIS->getInterval(Reg);
     weights[i] = VirtReg->weight();
 
-    for(int j = i+1; j < virt_size; ++j) {
+    for(int j = i+1; j < numVirtReg; ++j) {
       Reg = Register::index2VirtReg(j);
       if(MRI->reg_nodbg_empty(Reg))
         continue;
@@ -281,8 +304,6 @@ void RABitEA::buildInterGraph(){
         // RegMask or RegUnit interference.
         case LiveRegMatrix::IK_RegUnit:
         case LiveRegMatrix::IK_RegMask:
-          if (this->physRegDict.find(PhysReg) == this->physRegDict.end())
-            this->physRegDict[PhysReg] = lastRegId++; // Assign then increment
           SET_BIT((*edge_mat)[i], this->physRegDict[PhysReg]);
           SET_BIT((*edge_mat)[this->physRegDict[PhysReg]], i);
           continue;
